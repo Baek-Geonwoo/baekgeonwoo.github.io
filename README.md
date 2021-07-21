@@ -43,3 +43,87 @@ def quick_select(L,k):
 n, k = [int(e) for e in input().split()]
 L = [int(e) for e in input().split()]
 print(quick_select(L,k))
+
+# 2021 07 21
+
+오늘은 MoM(Median of Medians) 알고리즘에 대해서 배우고 MoM 알고리즘의 수행시간 분석을 귀납법을 통해 해보았습니다. MoM 알고리즘은 quick select 알고리즘이 worst case일때 수행시간이 O(n^2)이 되는 것을 보완한 알고리즘으로 quick select 알고리즘에서 pivot을 랜덤하게 정해서 수행시간이 길어지는 문제를 pivot을 k번째 값을 찾는데 좀더 효율적이도록 고름으로써 수행시간을 줄인 알고리즘입니다. 먼저 값들을 5개씩 자른 뒤 5개씩 자른 값들의 중간값들의 중간값을 구합니다.(이래서 알고리즘 이름이 median of medians입니다.) 이 중간값을 m이라고 부르겠습니다. 즉, m이 pivot이 되는것입니다. m보다 작은 값들을 A라는 리스트에 m보다 큰 값들을 B라는 리스트에 저장한 뒤 quick select 알고리즘처럼 k번째 값을 구합니다. 이러면 값의 개수를 n이라고 했을 떄 A, B의 크기가 n/4이상 3n/4이하가 되어 A또는 B에 대부분의 값이 몰려 수행시간이 길어지는 경우를 방지할 수 있게 됩니다. 수행시간을 분석한 결과 MoM알고리즘의 값이 n개일 때의 수행시간을 T(n) 이라 하면 T(n) = T(3n/4) + T(n/5) + 11n/5라는 식을 구할 수 있었습니다. T(1) = 1이므로 x<n 일때 T(x) <= cx이 성립한다고 가정하면 T(n) = T(3n/4) + T(n/5) + 11n/5 <= 3cn/4 + cn/5 + 11n/5 <= cn 에서 44<=c 임을 구핤할 수 있으며 T(n) <= 44n이 1일때 성립하고 x<n일때 성립한다고 가정했을 때 x=n일때 성립하는 것이 증명되었으므로 T(n) <= 44n이 성립합니다. 이로써 값이 n개일때 MoM 알고리즘의 수행시간이 O(n)이라는 것을 증명할 수 있었습니다. 아래는 제가 구현한 MoM 알고리즘 코드입니다.
+def find_median_five(A):
+	n = len(A)
+	if n in [1,2]:
+		return A[0]
+	elif n in [3,4]:
+		A.remove(max(A))
+		return max(A)
+	else:
+		if A[0] > A[1]:
+			s1, l1 = A[1], A[0]
+		else:
+			s1, l1 = A[0], A[1]
+		if A[2] > A[3]:
+			s2, l2 = A[3], A[2]
+		else:
+			s2, l2 = A[2], A[3]
+		r = A[4]
+		if l1 > l2:
+			if s1 > r:
+				if s1 > l2:
+					if l2 > r:
+						return r
+					else:
+						return l2
+				else:
+					return s1
+			else:
+				if l2 > r:
+					return r
+				else:
+					if l2 > s1:
+						return l2
+					else:
+						return s1
+		else:
+			if s2 > r:
+				if s2 > l1:
+					if l1 > r:
+						return r
+					else:
+						return l1
+				else:
+					return s2
+			else:
+				if l1 > r:
+					return r
+				else:
+					if l1 > s2:
+						return l1
+					else:
+						return s2
+	
+def MoM(A, k): # L의 값 중에서 k번째로 작은 수 리턴
+	if len(A) == 1: # no more recursion
+		return A[0]
+	i = 0
+	S, M, L, medians = [], [], [], []
+	while i+4 < len(A):
+		medians.append(find_median_five(A[i: i+5]))
+		i += 5
+		
+	if i < len(A) and i+4 >= len(A): # 마지막 그룹으로 5개 미만의 값으로 구성
+		medians.append(find_median_five(A[i:]))
+	
+	mom = MoM(medians, len(medians)//2)
+	for v in A:
+		if v < mom:
+			S.append(v)
+		elif v > mom:
+			L.append(v)
+		else:
+			M.append(v)
+
+	if len(S) >= k : return MoM(S, k)
+	elif len(S) + len(M) < k: return MoM(L, k - len(S) - len(M))
+	else: return mom
+
+n, k = map(int, input().split())
+A = list(map(int, input().split()))
+print(MoM(A, k))
