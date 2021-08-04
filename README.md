@@ -147,3 +147,25 @@ def mult(u, v):
 u = int(input())
 v = int(input())
 print(mult(u,v))
+
+# 2021 08 04
+이번에는 정렬 알고리즘에 대해서 배웠습니다. 기본적인 정렬 알고리즘(쉽고 느린)은 3종류가 있는데 selection, bubble 그리고 insertion이 있습니다. selection 정렬 알고리즘은 리스트에서 [:]에서 최댓값을 구해 맨 뒤에 넣고 [:-1]에서 최댓값을 구해 인덱스 -2에 넣는 것을 반복하는데 이 과정을 n-1번 반복함으로써 리스트를 정렬할 수 있습니다. 그 다음 bubble 정렬 알고리즘은 앞에서부터 2개씩 비교하는데 인덱스로 0과 1을 비교하여 0이 더 크면 1에 두고 그 다음 1과 2를 비교하여 큰 것을 뒤에 놓는 것을 반복하여 최종적으로 맨 뒤에 가장 큰 값을 넣고 [:-1]에서 이를 반복하고, [:-2] ... 식으로 이 과정을 n-1번 반복하여 리스트를 정렬합니다. insertion 정렬 알고리즘은 A라는 리스트가 있다고 하면 A[0]으로 새로운 리스트를 만든 뒤(이를 B라 합니다) A[1]과 B의 요소들을 비교하여 B에서 A[1]이 들어갈 위치를 B의 뒤에서부터 찾아 A[1]을 넣습니다. A[2], A[3]...에 대해서 이를 반복하면 A를 오름차순 정렬한 리스트가 B가 됩니다. 이 세 알고리즘은 모두 수행시간이 O(n^2)입니다.
+그 다음으로 가장 빠른 정렬 알고리즘인 quick sort 알고리즘에 대해서 배웠습니다. worst case의 수행시간은 앞의 세 정렬알고리즘과 같이 O(n^2)이지만 평균적으로 가장 빠른 알고리즘입니다. quick sort 알고리즘은 앞서 배웠던 quick select알고리즘을 이용한 알고리즘인데 리스트 A가 있다고 하면 A[0]을 pivot으로 잡고 pivot p보다 작은 값들을 S에 같은 값들을 M에 큰 값들을 L에 넣고,  quick sort 알고리즘을 S와 L에 적용하고 M과 더하여 반환합니다. 즉, return quick_sort(S)+M+quick_sort(L)합니다. 그리고 만약 A의 크기가 1 이하면 A를 반환합니다. 이를 반복하면 A가 정렬됩니다.
+아래는 실습겸 사용자로부터 리스트의 요소 개수 n을 받고 리스트에 들어갈 값을 n번 입력받아 리스트 L을 만들고 L을 quick sort 알고리즘으로 정렬하여 반환하는 코드를 작성한 것입니다.
+def quick_sort(L):
+	if len(L) <= 1:
+		return L
+	p = L[0]
+	A, B, M = [], [], []
+	for x in L:
+		if p>x: A.append(x)
+		elif p<x: B.append(x)
+		else: M.append(x)
+	return quick_sort(A) + M + quick_sort(B)
+
+n = int(input())
+L = []
+for _ in range(n):
+	L.append(int(input()))
+print(quick_sort(L))
+
