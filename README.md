@@ -193,3 +193,81 @@ def merge_sort(A, first, last):
     for k in range(j, last+1): B.append(A[k])
     for k in range(first, last+1): A[k] = B[k-first]
 
+#2021 08 25
+이번주 모각코에서는 동적 계획법을 배웠습니다. 동적 계획법은 큰 문제를 작은 문제들로 나누어 문제를 해결하는 방법으로 4가지 단계를 가집니다. 1.큰 문제를 작은문제로 분할한다. 2.큰문제의 답을 작은 문제의 답을 이용하여 나타낼 수 있는 점화식을 구한다. 3.DP 테이블을을 만든다. 4.정확성을 증명한다. 그런데 배운 내용대로면 1,2,3단계를 거치면 대부분 4단계는 성립한다고 합니다. 3단계의 DP 테이블이란 동적 계획법을 사용할 때 이용하는 리스트로 큰 문제를 분할한 작은 문제들의 답들을 순서대로 저장한 리스트 입니다. 2번의 점화식에 이용할 작은 문제의 답들을 DP테이블에서 가져와 사용하는 것 입니다.
+동적 계획법 실습문제로는 최대구간합 문제를 풀었는데 최대구간합이란 어떠한 리스트 A에서 i번 인덱스부터 j번 인덱스까지의 요소들의 합을 sumij라 할 때 A에서 최대의 sumij를 구하는 문제입니다. 저는 이 문제를 총 4가지 방법으로 풀었는데 문제를 푸는데 사용한 방법과 시간복잡도를 나열하면 1.모든ij를 구하여 최댓값을 구하는 방법 O(n^3) 2.prefixsum을 이용한 방법 O(n^2) 3.분할정복법 O(nlog2n)
+4.동적계획법(DP) O(n) 1번 방법의 경우 삼중for문을 사용하여 느리고, 2번의 경우는 P[i] = A[0] + A[1] + ... + A[i]인 P라는 배열(prefixsum을 저장할 리스트)을 만들고 sumij = P[j] - P[i-1]임을 이용한 방법으로 sumij를 매번 구하는 1번보다는 빠르지만 여전히 이중for문을 사용하여 느립니다. 3번의 경우는 주어진 리스트 A를 반으로 나누고 재귀를 통해 왼쪽 리스트에서 가장 큰 구간합을 L, 오른쪽에서 가장 큰 구간합을 R, 왼쪽과 오른쪽을 모두 지나는 구간을 M이라 하여 L, M, R 중 최댓값이 최대구간합 문제의 해가 되는 방법입니다. M을 구하는 방법은 가운데 인덱스를 m이라 하고 왼쪽 끝과 오른쪽 끝의 인덱스를 각각 l, r 이라 하면 왼쪽에서 A[m]으로 끝나는 최대구간합과 오른쪽에서 A[m+1]로 시작하는 최대구간합을 구하여 더한 것이 M이 됩니다.
+마지막으로 4번 방법은 dp[i]가 A[i]로 끝나는 최대구간합이 되도록 dp를 구성하여 max(dp)가 최대구간합 문제의 답이 되는 방법으로 dp[0] = A[0]라 한 뒤
+인덱스를 1부터 n-1까지 dp[i] = max(dp[i]+A[i], A[i])를 반복하여 DP테이블을 모두 채웁니다. 그 다음 max(dp)가 최대구간합의 해가 됩니다.
+아래는 순서대로 제가 짠 최대구간합 풀이 코드입니다.(1,2,3,4번 순서대로)
+
+1.전체다 구해서 최댓값 구하는 방법 O(n^3)
+n = int(input())
+A = list(map(int,input().split()))
+max_ = A[0]
+for i in range(n):
+    for j in range(i,n):
+        sumij = 0
+        for k in range(i,j+1):
+            sumij += A[k]
+        if max_ < sumij:
+            max_ = sumij
+print(max_)
+
+2.prefixsum 구해서 이용하는 방법 O(n^2)
+n = int(input())
+A = list(map(int,input().split()))
+max_ = A[0]
+P = [0 for _ in range(n)] #prefixsum들이 담겨있는 리스트
+P[0] = A[0]
+for i in range(1,n):
+    P[i] = P[i-1] + A[i]
+for i in range(n):
+    for j in range(i,n):
+        if i == 0:
+            sumij = P[j]
+        else:
+            sumij = P[j] - P[i-1]
+        if max_ < sumij:
+            max_ = sumij
+print(max_)
+
+3.분할정복법 이용하는 방법 O(nlog2n)
+import sys
+MIN_INT = -sys.maxsize
+n = int(input())
+A = list(map(int,input().split()))
+def max_interval(A,l,r):
+    if l >= r: return A[l]
+    m = (l+r)//2
+    L = max_interval(A,l,m)
+    R = max_interval(A,m+1,r)
+    #M 계산
+    max_l, max_r = MIN_INT, MIN_INT
+    for i in range(l,m+1):
+        m_l = 0
+        for j in range(i,m+1):
+            m_l += A[j]
+        if m_l > max_l:
+            max_l = m_l
+    for i in range(m+1,r+1):
+        m_r = 0
+        for j in range(m+1,i+1):
+            m_r += A[j]
+        if m_r > max_r:
+            max_r = m_r
+    M = max_l + max_r
+    return max(L,M,R)
+print(max_interval(A,0,n-1))
+
+4.동적 계획법 이용하는 방법 O(n)
+n = int(input())
+A = list(map(int,input().split()))
+def max_interval(A):
+    dp = [0 for _ in range(n)] #dp[i]는 A[i]로 끝나는 최대구간합
+    # A[k]로 끝나는 최대구간합 = dp[k-1] + A[k] or A[k]
+    dp[0] = A[0]
+    for i in range(1,n):
+        dp[i] = max(dp[i-1]+A[i], A[i])
+    return max(dp)
+print(max_interval(A))
